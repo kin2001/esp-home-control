@@ -1,54 +1,99 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Control</title>
-    <style>
-        body { font-family: Arial, sans-serif; text-align: center; margin-top: 50px; }
-        button { width: 200px; height: 60px; font-size: 20px; border: none; border-radius: 10px; margin: 10px 0; cursor: pointer; }
-        #light-on { background: #22c55e; }
-        #light-off { background: #ef4444; }
-        #fan-on { background: #22c55e; }
-        #fan-off { background: #ef4444; }
-    </style>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Control - Captive Portal</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #f0f0f0;
+      margin: 0;
+    }
+    h1 {
+      color: #333;
+    }
+    form {
+      margin: 10px;
+    }
+    button {
+      width: 200px;
+      height: 60px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      margin: 10px 0;
+    }
+    button:hover {
+      background-color: #3b82f6;
+    }
+    input {
+      width: 250px;
+      height: 40px;
+      font-size: 1.2em;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    input:focus {
+      border-color: #3b82f6;
+    }
+    input[type="password"] {
+      font-family: Arial, sans-serif;
+    }
+  </style>
 </head>
 <body>
-    <h1>Home Control</h1>
-    <button id="light-on">Light ON</button>
-    <button id="light-off">Light OFF</button>
-    <button id="fan-on">Fan ON</button>
-    <button id="fan-off">Fan OFF</button>
+  <h1>Home Control</h1>
+  
+  <form id="lightControlForm" action="#" method="POST">
+    <button type="submit" style="background: #22c55e;">Light is OFF</button>
+  </form>
+  
+  <form id="fanControlForm" action="#" method="POST">
+    <button type="submit" style="background: #22c55e;">Fan is OFF</button>
+  </form>
+  
+  <div id="wifiForm">
+    <form id="wifiForm" action="#" method="POST">
+      <input id="ssid" name="ssid" placeholder="SSID" required><br>
+      <input id="password" name="password" type="password" placeholder="Password" required><br>
+      <button type="submit" style="background: #10b981;">Connect</button>
+    </form>
+  </div>
+  
+  <script>
+    document.getElementById("wifiForm").style.display = 'none'; // Initially hide the form
+    
+    function switchToWiFiForm() {
+      document.getElementById("wifiForm").style.display = 'block';
+    }
 
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script>
-        const client = mqtt.connect('wss://ec8e8873f5b74b67a09925468064a435.s1.eu.hivemq.cloud:8884', {
-            username: 'hivemq.webclient.1746463573419',
-            password: '4yl@3D0rgjC<HV,5JwE#',
-            clientId: 'HomeControlClient'
-        });
+    // Handle Wi-Fi credentials form submission
+    document.getElementById("wifiForm").addEventListener("submit", function(event) {
+      event.preventDefault();
+      const ssid = document.getElementById("ssid").value;
+      const password = document.getElementById("password").value;
 
-        client.on('connect', () => {
-            console.log('Connected to MQTT Broker');
+      // Send credentials to ESP8266
+      fetch(`http://ESP8266_IP/setWiFi?ssid=${ssid}&password=${password}`, {
+        method: "POST",
+      }).then(response => response.json())
+        .then(data => {
+          alert("Wi-Fi settings saved. ESP8266 will now connect to the network.");
+          window.location.reload();
+        }).catch(error => {
+          alert("Error connecting to Wi-Fi.");
         });
-
-        // Light control
-        document.getElementById('light-on').addEventListener('click', () => {
-            client.publish('home/light', 'ON');
-        });
-
-        document.getElementById('light-off').addEventListener('click', () => {
-            client.publish('home/light', 'OFF');
-        });
-
-        // Fan control
-        document.getElementById('fan-on').addEventListener('click', () => {
-            client.publish('home/fan', 'ON');
-        });
-
-        document.getElementById('fan-off').addEventListener('click', () => {
-            client.publish('home/fan', 'OFF');
-        });
-    </script>
+    });
+  </script>
 </body>
 </html>
