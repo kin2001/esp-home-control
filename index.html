@@ -1,99 +1,73 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Control - Captive Portal</title>
-  <style>
-    body {
-      font-family: sans-serif;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      height: 100vh;
-      background: #f0f0f0;
-      margin: 0;
-    }
-    h1 {
-      color: #333;
-    }
-    form {
-      margin: 10px;
-    }
-    button {
-      width: 200px;
-      height: 60px;
-      font-size: 1.2em;
-      border: none;
-      border-radius: 10px;
-      color: white;
-      margin: 10px 0;
-    }
-    button:hover {
-      background-color: #3b82f6;
-    }
-    input {
-      width: 250px;
-      height: 40px;
-      font-size: 1.2em;
-      padding: 8px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-      margin: 10px 0;
-      box-sizing: border-box;
-    }
-    input:focus {
-      border-color: #3b82f6;
-    }
-    input[type="password"] {
-      font-family: Arial, sans-serif;
-    }
-  </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Home Control</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            background: #f0f0f0;
+            margin: 0;
+        }
+        h1 {
+            color: #333;
+        }
+        form {
+            margin: 10px;
+        }
+        button {
+            width: 200px;
+            height: 60px;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            color: white;
+            margin: 10px 0;
+        }
+        button:hover {
+            background-color: #3b82f6;
+        }
+        input {
+            width: 250px;
+            height: 40px;
+            font-size: 1.2em;
+            padding: 8px;
+            border-radius: 8px;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+            box-sizing: border-box;
+        }
+        input:focus {
+            border-color: #3b82f6;
+        }
+        input[type='password'] {
+            font-family: Arial, sans-serif;
+        }
+    </style>
 </head>
 <body>
-  <h1>Home Control</h1>
-  
-  <form id="lightControlForm" action="#" method="POST">
-    <button type="submit" style="background: #22c55e;">Light is OFF</button>
-  </form>
-  
-  <form id="fanControlForm" action="#" method="POST">
-    <button type="submit" style="background: #22c55e;">Fan is OFF</button>
-  </form>
-  
-  <div id="wifiForm">
-    <form id="wifiForm" action="#" method="POST">
-      <input id="ssid" name="ssid" placeholder="SSID" required><br>
-      <input id="password" name="password" type="password" placeholder="Password" required><br>
-      <button type="submit" style="background: #10b981;">Connect</button>
+    <h1>Home Control</h1>
+
+    <!-- Light Control Button -->
+    <form action="/toggleLight" method="POST">
+        <button style="background:#22c55e;">Light is ON</button>
     </form>
-  </div>
-  
-  <script>
-    document.getElementById("wifiForm").style.display = 'none'; // Initially hide the form
-    
-    function switchToWiFiForm() {
-      document.getElementById("wifiForm").style.display = 'block';
-    }
 
-    // Handle Wi-Fi credentials form submission
-    document.getElementById("wifiForm").addEventListener("submit", function(event) {
-      event.preventDefault();
-      const ssid = document.getElementById("ssid").value;
-      const password = document.getElementById("password").value;
+    <!-- Fan Control Button -->
+    <form action="/toggleFan" method="POST">
+        <button style="background:#22c55e;">Fan is ON</button>
+    </form>
 
-      // Send credentials to ESP8266
-      fetch(`http://ESP8266_IP/setWiFi?ssid=${ssid}&password=${password}`, {
-        method: "POST",
-      }).then(response => response.json())
-        .then(data => {
-          alert("Wi-Fi settings saved. ESP8266 will now connect to the network.");
-          window.location.reload();
-        }).catch(error => {
-          alert("Error connecting to Wi-Fi.");
-        });
-    });
-  </script>
+    <!-- Back to Captive Mode Button (Only if credentials are saved) -->
+    <form action="/resetWiFi" method="POST">
+        <button style="background:#f97316;">Back to Captive Mode</button>
+    </form>
+
 </body>
 </html>
