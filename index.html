@@ -1,77 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Home Control</title>
-    <style>
-        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
-        .container { text-align: center; }
-        .button { padding: 20px; font-size: 24px; border-radius: 10px; border: none; margin: 10px; cursor: pointer; }
-        .on { background-color: #4CAF50; color: white; }
-        .off { background-color: #f44336; color: white; }
-    </style>
+  <meta charset='utf-8'>
+  <meta name='viewport' content='width=device-width, initial-scale=1'>
+  <title>Home Control</title>
+  <style>
+    body {
+      font-family: sans-serif;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      background: #f0f0f0;
+      margin: 0;
+    }
+    h1 { color: #333; }
+    form { margin: 10px; }
+    button {
+      width: 200px;
+      height: 60px;
+      font-size: 1.2em;
+      border: none;
+      border-radius: 10px;
+      color: white;
+      margin: 10px 0;
+    }
+    button:hover {
+      background-color: #3b82f6;
+    }
+    input {
+      width: 250px;
+      height: 40px;
+      font-size: 1.2em;
+      padding: 8px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+      margin: 10px 0;
+      box-sizing: border-box;
+    }
+    input:focus {
+      border-color: #3b82f6;
+    }
+    input[type='password'] {
+      font-family: Arial, sans-serif;
+    }
+  </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Home Control</h1>
-        <button id="lightButton" class="button off">Light: OFF</button><br>
-        <button id="fanButton" class="button off">Fan: OFF</button><br>
-    </div>
-
-    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
-    <script>
-        // Connect to HiveMQ Cloud MQTT broker
-        const client = mqtt.connect('wss://ec8e8873f5b74b67a09925468064a435.s1.eu.hivemq.cloud:8884', {
-            clientId: 'webclient',
-            username: 'hivemq.webclient.1746463573419',
-            password: '4yl@3D0rgjC<HV,5JwE#'
-        });
-
-        // Connect callback
-        client.on('connect', function () {
-            console.log('Connected to MQTT');
-            client.subscribe('home/light');
-            client.subscribe('home/fan');
-        });
-
-        // Handle incoming messages
-        client.on('message', function (topic, message) {
-            if (topic === 'home/light') {
-                updateButton('lightButton', message.toString());
-            }
-            if (topic === 'home/fan') {
-                updateButton('fanButton', message.toString());
-            }
-        });
-
-        // Update button states based on the received MQTT message
-        function updateButton(buttonId, state) {
-            const button = document.getElementById(buttonId);
-            if (state === 'ON') {
-                button.classList.remove('off');
-                button.classList.add('on');
-            } else {
-                button.classList.remove('on');
-                button.classList.add('off');
-            }
-        }
-
-        // Button click handlers to toggle light and fan
-        document.getElementById('lightButton').addEventListener('click', function () {
-            const currentState = this.classList.contains('off') ? 'OFF' : 'ON';
-            const newState = currentState === 'ON' ? 'OFF' : 'ON';
-            client.publish('home/light', newState);
-            updateButton('lightButton', newState);
-        });
-
-        document.getElementById('fanButton').addEventListener('click', function () {
-            const currentState = this.classList.contains('off') ? 'OFF' : 'ON';
-            const newState = currentState === 'ON' ? 'OFF' : 'ON';
-            client.publish('home/fan', newState);
-            updateButton('fanButton', newState);
-        });
-    </script>
+  <h1>Home Control</h1>
+  <form><button style='background:#22c55e;'>Light is ON</button></form>
+  <form><button style='background:#ef4444;'>Fan is OFF</button></form>
+  <form><button style='background:#3b82f6;'>Online</button></form>
 </body>
 </html>
- 
