@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Home Control</title>
+    <style>
+        body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; height: 100vh; background-color: #f4f4f4; }
+        .container { text-align: center; }
+        .button { padding: 20px; font-size: 24px; border-radius: 10px; border: none; margin: 10px; cursor: pointer; }
+        .on { background-color: #4CAF50; color: white; }
+        .off { background-color: #f44336; color: white; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Home Control</h1>
+        <button id="lightButton" class="button off">Light: OFF</button><br>
+        <button id="fanButton" class="button off">Fan: OFF</button><br>
+    </div>
+
+    <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
+    <script>
+        // Connect to HiveMQ Cloud MQTT broker
+        const client = mqtt.connect('wss://ec8e8873f5b74b67a09925468064a435.s1.eu.hivemq.cloud:8884', {
+            clientId: 'webclient',
+            username: 'hivemq.webclient.1746463573419',
+            password: '4yl@3D0rgjC<HV,5JwE#'
+        });
+
+        // Connect callback
+        client.on('connect', function () {
+            console.log('Connected to MQTT');
+            client.subscribe('home/light');
+            client.subscribe('home/fan');
+        });
+
+        // Handle incoming messages
+        client.on('message', function (topic, message) {
+            if (topic === 'home/light') {
+                updateButton('lightButton', message.toString());
+            }
+            if (topic === 'home/fan') {
+                updateButton('fanButton', message.toString());
+            }
+        });
+
+        // Update button states based on the received MQTT message
+        function updateButton(buttonId, state) {
+            const button = document.getElementById(buttonId);
+            if (state === 'ON') {
+                button.classList.remove('off');
+                button.classList.add('on');
+            } else {
+                button.classList.remove('on');
+                button.classList.add('off');
+            }
+        }
+
+        // Button click handlers to toggle light and fan
+        document.getElementById('lightButton').addEventListener('click', function () {
+            const currentState = this.classList.contains('off') ? 'OFF' : 'ON';
+            const newState = currentState === 'ON' ? 'OFF' : 'ON';
+            client.publish('home/light', newState);
+            updateButton('lightButton', newState);
+        });
+
+        document.getElementById('fanButton').addEventListener('click', function () {
+            const currentState = this.classList.contains('off') ? 'OFF' : 'ON';
+            const newState = currentState === 'ON' ? 'OFF' : 'ON';
+            client.publish('home/fan', newState);
+            updateButton('fanButton', newState);
+        });
+    </script>
+</body>
+</html>
+ 
