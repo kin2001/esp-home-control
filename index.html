@@ -1,73 +1,50 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>Home Control</title>
-    <style>
-        body {
-            font-family: sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            justify-content: center;
-            height: 100vh;
-            background: #f0f0f0;
-            margin: 0;
-        }
-        h1 {
-            color: #333;
-        }
-        form {
-            margin: 10px;
-        }
-        button {
-            width: 200px;
-            height: 60px;
-            font-size: 1.2em;
-            border: none;
-            border-radius: 10px;
-            color: white;
-            margin: 10px 0;
-        }
-        button:hover {
-            background-color: #3b82f6;
-        }
-        input {
-            width: 250px;
-            height: 40px;
-            font-size: 1.2em;
-            padding: 8px;
-            border-radius: 8px;
-            border: 1px solid #ccc;
-            margin: 10px 0;
-            box-sizing: border-box;
-        }
-        input:focus {
-            border-color: #3b82f6;
-        }
-        input[type='password'] {
-            font-family: Arial, sans-serif;
-        }
-    </style>
+  <meta charset="UTF-8">
+  <title>ESP Home Control</title>
+  <style>
+    body { font-family: sans-serif; text-align: center; margin-top: 100px; }
+    button { font-size: 1.5em; margin: 20px; padding: 20px; border-radius: 10px; border: none; }
+  </style>
 </head>
 <body>
-    <h1>Home Control</h1>
+  <h1>ESP8266 Remote Control</h1>
+  <button onclick="toggle('light')">Toggle Light</button>
+  <button onclick="toggle('fan')">Toggle Fan</button>
 
-    <!-- Light Control Button -->
-    <form action="/toggleLight" method="POST">
-        <button style="background:#22c55e;">Light is ON</button>
-    </form>
+  <script>
+    async function toggle(device) {
+      const token = 'YOUR_GITHUB_TOKEN'; // Replace with your token
+      const owner = 'yourusername';
+      const repo = 'esp-home-control';
+      const path = 'commands.json';
 
-    <!-- Fan Control Button -->
-    <form action="/toggleFan" method="POST">
-        <button style="background:#22c55e;">Fan is ON</button>
-    </form>
+      // Fetch current file from GitHub
+      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+        headers: { Authorization: `token ${token}` }
+      });
+      const data = await response.json();
+      const content = JSON.parse(atob(data.content));
 
-    <!-- Show 'Back to Captive Mode' button if credentials are saved -->
-    <form action="/resetWiFi" method="POST">
-        <button style="background:#f97316;">Back to Captive Mode</button>
-    </form>
+      content[device] = !content[device];
 
+      // Push updated content
+      await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
+        method: 'PUT',
+        headers: {
+          Authorization: `token ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          message: `Toggle ${device}`,
+          content: btoa(JSON.stringify(content, null, 2)),
+          sha: data.sha
+        })
+      });
+
+      alert(`${device} toggled!`);
+    }
+  </script>
 </body>
 </html>
