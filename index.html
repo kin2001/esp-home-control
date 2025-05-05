@@ -1,50 +1,50 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title>ESP Home Control</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Home Control</title>
   <style>
-    body { font-family: sans-serif; text-align: center; margin-top: 100px; }
-    button { font-size: 1.5em; margin: 20px; padding: 20px; border-radius: 10px; border: none; }
+    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; }
+    button { padding: 10px 20px; font-size: 16px; margin: 10px; }
+    .on { background-color: green; color: white; }
+    .off { background-color: red; color: white; }
   </style>
 </head>
 <body>
-  <h1>ESP8266 Remote Control</h1>
-  <button onclick="toggle('light')">Toggle Light</button>
-  <button onclick="toggle('fan')">Toggle Fan</button>
+  <h1>Control Your Devices</h1>
+  <button id="lightButton" class="off">Light OFF</button>
+  <button id="fanButton" class="off">Fan OFF</button>
+
+  <!-- "Back to Captive Mode" Button -->
+  <button id="resetButton">Back to Captive Mode</button>
 
   <script>
-    async function toggle(device) {
-      const token = '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'; // Replace with your token
-      const owner = 'kin2001';
-      const repo = 'esp-home-control';
-      const path = 'commands.json';
+    const lightButton = document.getElementById("lightButton");
+    const fanButton = document.getElementById("fanButton");
+    const resetButton = document.getElementById("resetButton");
 
-      // Fetch current file from GitHub
-      const response = await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-        headers: { Authorization: `token ${token}` }
-      });
-      const data = await response.json();
-      const content = JSON.parse(atob(data.content));
+    lightButton.addEventListener("click", () => {
+      const state = lightButton.classList.contains("off") ? "on" : "off";
+      fetch(`https://your-esp-ip-address/mqtt?device=light&state=${state}`);
+      lightButton.classList.toggle("off");
+      lightButton.classList.toggle("on");
+      lightButton.textContent = `Light ${state.toUpperCase()}`;
+    });
 
-      content[device] = !content[device];
+    fanButton.addEventListener("click", () => {
+      const state = fanButton.classList.contains("off") ? "on" : "off";
+      fetch(`https://your-esp-ip-address/mqtt?device=fan&state=${state}`);
+      fanButton.classList.toggle("off");
+      fanButton.classList.toggle("on");
+      fanButton.textContent = `Fan ${state.toUpperCase()}`;
+    });
 
-      // Push updated content
-      await fetch(`https://api.github.com/repos/${owner}/${repo}/contents/${path}`, {
-        method: 'PUT',
-        headers: {
-          Authorization: `token ${token}`,
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify({
-          message: `Toggle ${device}`,
-          content: btoa(JSON.stringify(content, null, 2)),
-          sha: data.sha
-        })
-      });
-
-      alert(`${device} toggled!`);
-    }
+    // Back to Captive Mode Button
+    resetButton.addEventListener("click", () => {
+      fetch('https://your-esp-ip-address/resetWiFi');  // Send a reset Wi-Fi command to the ESP
+      alert("The ESP will now restart and go back to captive mode.");
+    });
   </script>
 </body>
 </html>
