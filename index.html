@@ -1,49 +1,56 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Home Control</title>
+  <title>Home Control via MQTT</title>
+  <script src="https://unpkg.com/mqtt/dist/mqtt.min.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; display: flex; justify-content: center; align-items: center; flex-direction: column; height: 100vh; }
-    button { padding: 10px 20px; font-size: 16px; margin: 10px; }
-    .on { background-color: green; color: white; }
-    .off { background-color: red; color: white; }
+    body { font-family: sans-serif; text-align: center; margin-top: 50px; }
+    button { width: 200px; height: 60px; margin: 10px; font-size: 20px; border: none; border-radius: 10px; }
+    .on { background-color: #22c55e; color: white; }
+    .off { background-color: #ef4444; color: white; }
   </style>
 </head>
 <body>
-  <h1>Control Your Devices</h1>
-  <button id="lightButton" class="off">Light OFF</button>
-  <button id="fanButton" class="off">Fan OFF</button>
-
-  <!-- "Back to Captive Mode" Button -->
-  <button id="resetButton">Back to Captive Mode</button>
+  <h1>MQTT Home Control</h1>
+  <button id="lightBtn" class="off">Light is OFF</button><br>
+  <button id="fanBtn" class="off">Fan is OFF</button>
 
   <script>
-    const lightButton = document.getElementById("lightButton");
-    const fanButton = document.getElementById("fanButton");
-    const resetButton = document.getElementById("resetButton");
-
-    lightButton.addEventListener("click", () => {
-      const state = lightButton.classList.contains("off") ? "on" : "off";
-      fetch(`https://your-esp-ip-address/mqtt?device=light&state=${state}`);
-      lightButton.classList.toggle("off");
-      lightButton.classList.toggle("on");
-      lightButton.textContent = `Light ${state.toUpperCase()}`;
+    const client = mqtt.connect("wss://ec8e8873f5b74b67a09925468064a435.s1.eu.hivemq.cloud:8884/mqtt", {
+      username: "hivemq.webclient.1746500824550",
+      password: "f7FcI;:0,D13jX>npTgU",
+      clientId: "web_" + Math.random().toString(16).substr(2, 8),
+      clean: true,
+      connectTimeout: 4000,
+      reconnectPeriod: 4000
     });
 
-    fanButton.addEventListener("click", () => {
-      const state = fanButton.classList.contains("off") ? "on" : "off";
-      fetch(`https://your-esp-ip-address/mqtt?device=fan&state=${state}`);
-      fanButton.classList.toggle("off");
-      fanButton.classList.toggle("on");
-      fanButton.textContent = `Fan ${state.toUpperCase()}`;
+    client.on('connect', () => {
+      console.log("Connected to HiveMQ!");
+      client.subscribe("home/status/light");
+      client.subscribe("home/status/fan");
     });
 
-    // Back to Captive Mode Button
-    resetButton.addEventListener("click", () => {
-      fetch('https://your-esp-ip-address/resetWiFi');  // Send a reset Wi-Fi command to the ESP
-      alert("The ESP will now restart and go back to captive mode.");
+    client.on('message', (topic, message) => {
+      const msg = message.toString();
+      if (topic === "home/status/light") {
+        const btn = document.getElementById("lightBtn");
+        btn.textContent = "Light is " + msg;
+        btn.className = msg === "ON" ? "on" : "off";
+      } else if (topic === "home/status/fan") {
+        const btn = document.getElementById("fanBtn");
+        btn.textContent = "Fan is " + msg;
+        btn.className = msg === "ON" ? "on" : "off";
+      }
+    });
+
+    document.getElementById("lightBtn").addEventListener("click", () => {
+      client.publish("home/control/light", "TOGGLE");
+    });
+
+    document.getElementById("fanBtn").addEventListener("click", () => {
+      client.publish("home/control/fan", "TOGGLE");
     });
   </script>
 </body>
